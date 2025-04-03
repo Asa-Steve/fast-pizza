@@ -45,7 +45,6 @@ const userSlice = createSlice({
         state.status = "loading";
       })
       .addCase(fetchAddress.fulfilled, (state, action) => {
-        console.log(action.payload);
         state.status = "idle";
         state.address = action.payload.address;
         state.position = { ...action.payload.position };

@@ -13,7 +13,7 @@ const style = {
     "rounded-full h-[25px] w-[25px] sm:h-[30px] sm:w-[30px] text-white bg-blue-950 hover:bg-blue-950/90 px-2 text-xs cursor-pointer transition duration-300",
 };
 
-const Button = ({ children, type, to, onclick, disabled }) => {
+const Button = ({ children, type, to, onclick, disabled = false }) => {
   if (onclick)
     return (
       <button onClick={onclick} disabled={disabled} className={style[type]}>
@@ -26,7 +26,11 @@ const Button = ({ children, type, to, onclick, disabled }) => {
         {children}
       </Link>
     );
-  return <button className={style[type]}>{children}</button>;
+  return (
+    <button disabled={disabled} className={style[type]}>
+      {children}
+    </button>
+  );
 };
 
 export default Button;

@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../ui/Button";
 import { createOrder } from "../utils/apiRestaurant";
 import { fetchAddress } from "../user/userSlice";
+import store from "../../store";
+import { clearCart } from "../cart/cartSlice";
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
@@ -25,8 +27,6 @@ function CreateOrder() {
   const isLoadingAddress = status === "loading";
   const dispatch = useDispatch();
 
-  console.log(addressError);
-
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
@@ -39,7 +39,7 @@ function CreateOrder() {
 
   if (cart.length < 1)
     return (
-      <div className="m-auto mt-7 max-w-200">
+      <div className="m-auto max-w-200">
         <Button to="/menu" type={"link"}>
           &larr; Back to menu
         </Button>
@@ -50,13 +50,13 @@ function CreateOrder() {
     );
 
   return (
-    <div className="mx-auto mt-10 max-w-200 px-2">
-      <h2 className="my-5 text-2xl font-semibold sm:text-3xl">
+    <div className="mx-auto max-w-200 px-2 pt-7">
+      <h2 className="py-5 text-2xl font-semibold sm:text-3xl">
         Ready to order? Let's go!
       </h2>
 
       <Form method="POST">
-        <div className="flex flex-col gap-y-2 md:flex-row">
+        <div className="flex flex-col items-baseline gap-y-2 md:flex-row">
           <label className="md:basis-40">First Name</label>
           <input
             className="w-full rounded-full border border-stone-300 px-4 py-2.5 text-sm focus:ring focus:ring-blue-700 focus:ring-offset-1 focus:outline-0 sm:py-3"
@@ -76,8 +76,12 @@ function CreateOrder() {
               name="phone"
               required
             />
+            {errors?.phone && (
+              <p className="mt-5 rounded-sm bg-red-100 py-2 pl-4 text-xs text-red-500">
+                {errors.phone}
+              </p>
+            )}
           </div>
-          {errors?.phone && <p>{errors.phone}</p>}
         </div>
 
         <div className="flex flex-col items-baseline gap-y-2 md:flex-row">
@@ -91,7 +95,7 @@ function CreateOrder() {
               required
             />
             <div className="sm:right-0.2 absolute top-[2px] right-0.5 w-fit rounded-full">
-              {
+              {(!position.latitude || !position.longitude) && (
                 <Button
                   onclick={handleFetchPosition}
                   type={"primary"}
@@ -99,7 +103,7 @@ function CreateOrder() {
                 >
                   Get position
                 </Button>
-              }
+              )}
             </div>
             {addressError && (
               <p className="mt-5 rounded-sm bg-red-100 py-2 pl-4 text-xs text-red-500">
@@ -118,11 +122,11 @@ function CreateOrder() {
             // value={withPriority}
             // onChange={(e) => setWithPriority(e.target.checked)}
           />
-          <label htmlFor="priority">Want to yo give your order priority?</label>
+          <label htmlFor="priority">Want us to give your order priority?</label>
         </div>
         <div className="mt-10 py-1">
           <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-          <Button type={"primary"}>
+          <Button type={"primary"} disabled={isSubmitting}>
             {isSubmitting ? "Placing Order" : "Order now"}
           </Button>
         </div>
@@ -148,7 +152,7 @@ export async function action({ request }) {
   }
 
   const order = await createOrder(newOrder);
-
+  store.dispatch(clearCart());
   return redirect(`/order/${order.id}`);
 }
 

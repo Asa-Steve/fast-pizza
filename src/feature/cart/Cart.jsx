@@ -1,22 +1,28 @@
-import { Link } from "react-router-dom";
+import { Link, useFetcher } from "react-router-dom";
 import CartItem from "./CartItem";
 import Button from "../ui/Button";
 import { clearCart } from "./cartSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 
 function Cart() {
   const cart = useSelector((state) => state.cart.cart);
   const username = useSelector((state) => state.user.username);
   const dispatch = useDispatch();
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    fetcher.state === "idle" && !fetcher.data && fetcher.load("/menu");
+  }, []);
 
   return (
-    <div className="m-auto mt-7 max-w-200">
+    <div className="m-auto max-w-200 pt-7">
       <Button to="/menu" type={"link"}>
         &larr; Back to menu
       </Button>
 
       {cart.length < 1 ? (
-        <h1 className=" mt-10 font-bold text-stone-600">
+        <h1 className="mt-10 font-bold text-stone-600">
           Your cart is still empty. Start adding some pizzas :)
         </h1>
       ) : (
@@ -27,7 +33,16 @@ function Cart() {
           <div className="px-2">
             <ul>
               {cart.map((item) => (
-                <CartItem key={item.pizzaId} item={item} />
+                <CartItem
+                  key={item.pizzaId}
+                  item={item}
+                  ingredients={
+                    fetcher.data
+                      ?.filter((pizza) => pizza.id === item.pizzaId)
+                      ?.at(0)?.ingredients
+                  }
+                  isLoadingIngredient={fetcher.state === "loading"}
+                />
               ))}
             </ul>
           </div>
